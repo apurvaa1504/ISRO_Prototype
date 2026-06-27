@@ -3,17 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NOC Copilot — Air-Gapped Predictive Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <title>NOC Copilot — ISRO Predictive Fault Analytics</title>
+    <meta name="description" content="Air-gapped predictive network fault analytics powered by LSTM and local LLM. Built for sovereign Indian infrastructure." />
+    <!-- Times New Roman and Courier New are native system fonts — no import needed -->
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body, #root { height: 100%; width: 100%; overflow: hidden; }
-      body { font-family: 'Inter', sans-serif; background: #060d16; }
-      ::-webkit-scrollbar { width: 4px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #1e3050; border-radius: 4px; }
+      body {
+        font-family: 'Times New Roman', Times, serif;
+        background: #f5f0e8;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      /* Custom scrollbars */
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
+      ::-webkit-scrollbar-track { background: #e8edf8; }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #0a235150, #F4721650);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #0a235180, #F4721680);
+      }
+      /* Selection color */
+      ::selection {
+        background: #0a235120;
+        color: #0a1628;
+      }
+      /* Textarea placeholder */
+      textarea::placeholder { color: #5a6e8a; }
+      /* Button reset */
+      button { font-family: 'Times New Roman', Times, serif; }
     </style>
   </head>
   <body>

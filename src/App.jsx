@@ -1,34 +1,56 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-/* ─── Design tokens ──────────────────────────────────────────────────────── */
+/* ─── ISRO Design tokens — Light Theme ──────────────────────────────────── */
 const T = {
-  bg:        '#060d16',
-  surface:   '#0b1622',
-  card:      '#0f1e2e',
-  border:    '#162840',
-  borderHi:  '#1e3a58',
-  text:      '#d8e8f4',
-  muted:     '#4a6580',
-  faint:     '#1e3050',
-  green:     '#16c974',
-  greenBg:   '#031a0c',
-  greenDim:  '#0a3018',
-  amber:     '#f5a623',
-  amberBg:   '#1a0e00',
-  amberDim:  '#2a1800',
-  red:       '#f0454a',
-  redBg:     '#1a0508',
-  redDim:    '#2a0a0c',
-  blue:      '#3b8fe8',
-  blueBg:    '#060f1f',
-  blueDim:   '#0c1e38',
-  mono:      "'JetBrains Mono', monospace",
+  // Core backgrounds — cream white
+  bg:        '#f5f0e8',
+  surface:   '#fffdf8',
+  card:      '#ffffff',
+  cardHi:    '#f9f7f2',
+
+  // Borders
+  border:    '#d0d8e8',
+  borderHi:  '#aab8d0',
+
+  // Text
+  text:      '#0a1628',
+  muted:     '#5a6e8a',
+  faint:     '#c8d4e4',
+
+  // ISRO Navy (primary accent) — #0a2351
+  blue:      '#0a2351',
+  blueBg:    '#e8edf8',
+  blueDim:   '#d4ddf0',
+  blueMid:   '#c0cceb',
+  blueGlow:  '#0a235130',
+
+  // ISRO Metallic Orange (secondary accent) — #F47216
+  orange:    '#F47216',
+  orangeBg:  '#fff3ea',
+  orangeDim: '#ffe4cc',
+  orangeGlow:'#F4721630',
+
+  // Status colors
+  green:     '#1a7a3c',
+  greenBg:   '#eaf7ee',
+  greenDim:  '#d4f0dc',
+
+  amber:     '#b86800',
+  amberBg:   '#fff8e6',
+  amberDim:  '#ffefc0',
+
+  red:       '#c0192c',
+  redBg:     '#fceef0',
+  redDim:    '#f8d8dc',
+
+  // Monospace
+  mono:      "'Courier New', Courier, monospace",
 }
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
-const TICK_MS      = 2000
-const FAULT_TICK   = 14   // auto-inject fault after ~28s
-const FAULT_LINK   = 'mum-pun'
+const TICK_MS    = 2000
+const FAULT_TICK = 14
+const FAULT_LINK = 'mum-pun'
 
 const LINKS_INIT = [
   { id: 'mum-del', label: 'Mumbai → Delhi',       usage: 42, lat: 8,  loss: 0.0, risk: 0.10, faulting: false },
@@ -38,10 +60,10 @@ const LINKS_INIT = [
 ]
 
 const SITES = [
-  { id: 'mumbai', label: 'Mumbai Hub',    role: 'CE/PE Router', color: T.blue  },
-  { id: 'delhi',  label: 'Delhi Branch',  role: 'CE Router',    color: T.green },
-  { id: 'pune',   label: 'Pune Branch',   role: 'CE Router',    color: T.amber },
-  { id: 'dc',     label: 'Data Center',   role: 'P Router',     color: T.blue  },
+  { id: 'mumbai', label: 'Mumbai Hub',    role: 'CE/PE Router', color: T.blue   },
+  { id: 'delhi',  label: 'Delhi Branch',  role: 'CE Router',    color: T.green  },
+  { id: 'pune',   label: 'Pune Branch',   role: 'CE Router',    color: T.orange },
+  { id: 'dc',     label: 'Data Center',   role: 'P Router',     color: T.blue   },
 ]
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -116,17 +138,19 @@ function getRagSource(q) {
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function Badge({ risk, small }) {
+  const col = riskColor(risk)
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      padding: small ? '1px 6px' : '2px 8px',
-      borderRadius: 4,
+      padding: small ? '2px 7px' : '3px 9px',
+      borderRadius: 3,
       fontSize: small ? 9 : 10,
-      fontWeight: 700,
-      letterSpacing: '0.08em',
-      color: riskColor(risk),
+      fontWeight: 800,
+      letterSpacing: '0.10em',
+      color: col,
       background: riskBg(risk),
-      border: `1px solid ${riskColor(risk)}30`,
+      border: `1px solid ${col}45`,
+      boxShadow: risk >= 0.45 ? `0 0 6px ${col}30` : 'none',
     }}>
       {riskLabel(risk)}
     </span>
@@ -134,15 +158,20 @@ function Badge({ risk, small }) {
 }
 
 function UsageBar({ value, risk }) {
+  const col = riskColor(risk)
   return (
-    <div style={{ height: 5, background: T.faint, borderRadius: 3, overflow: 'hidden', marginTop: 8 }}>
+    <div style={{ height: 6, background: T.faint, borderRadius: 3, overflow: 'hidden', marginTop: 9, position: 'relative' }}>
       <div style={{
         height: '100%',
         width: `${clamp(value, 0, 100)}%`,
-        background: riskColor(risk),
+        background: risk >= 0.75
+          ? `linear-gradient(90deg, ${T.red}, #ff6b70)`
+          : risk >= 0.45
+          ? `linear-gradient(90deg, ${T.amber}, #ffcc55)`
+          : `linear-gradient(90deg, ${T.blue}, ${T.green})`,
         borderRadius: 3,
         transition: 'width 1.8s ease, background 0.6s ease',
-        boxShadow: risk >= 0.45 ? `0 0 6px ${riskColor(risk)}60` : 'none',
+        boxShadow: risk >= 0.45 ? `0 0 8px ${col}70` : `0 0 6px ${T.blue}50`,
       }} />
     </div>
   )
@@ -151,7 +180,7 @@ function UsageBar({ value, risk }) {
 function StatPill({ label, value, unit, risk }) {
   return (
     <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.06em', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.07em', marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: 15, fontWeight: 700, color: risk != null ? riskColor(risk) : T.text, fontFamily: T.mono }}>
         {value}<span style={{ fontSize: 9, color: T.muted, fontFamily: 'Inter,sans-serif' }}>{unit}</span>
       </div>
@@ -162,22 +191,39 @@ function StatPill({ label, value, unit, risk }) {
 function LinkCard({ link }) {
   const isCrit = link.risk >= 0.75
   const isWarn = link.risk >= 0.45
+  const borderColor = isCrit ? T.red : isWarn ? T.amber : T.border
   return (
     <div style={{
-      background: T.card,
-      border: `1px solid ${isCrit ? T.red + '50' : isWarn ? T.amber + '40' : T.border}`,
-      borderRadius: 10,
-      padding: '13px 14px',
-      marginBottom: 8,
-      transition: 'border-color 0.5s ease',
-      boxShadow: isCrit ? `0 0 12px ${T.red}15` : isWarn ? `0 0 8px ${T.amber}10` : 'none',
+      background: `linear-gradient(135deg, ${T.card} 0%, ${T.cardHi} 100%)`,
+      border: `1px solid ${isCrit ? T.red + '60' : isWarn ? T.amber + '50' : T.border}`,
+      borderRadius: 12,
+      padding: '14px 15px',
+      marginBottom: 9,
+      transition: 'border-color 0.5s ease, box-shadow 0.5s ease',
+      boxShadow: isCrit
+        ? `0 0 20px ${T.red}20, inset 0 0 20px ${T.red}05`
+        : isWarn
+        ? `0 0 14px ${T.amber}15`
+        : `0 0 8px ${T.blue}08`,
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{link.label}</span>
+      {/* top accent line */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+        background: isCrit
+          ? `linear-gradient(90deg, ${T.red}, transparent)`
+          : isWarn
+          ? `linear-gradient(90deg, ${T.amber}, transparent)`
+          : `linear-gradient(90deg, ${T.blue}, transparent)`,
+        borderRadius: '12px 12px 0 0',
+      }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: T.text, letterSpacing: '0.02em' }}>{link.label}</span>
         <Badge risk={link.risk} small />
       </div>
       <UsageBar value={link.usage} risk={link.risk} />
-      <div style={{ display: 'flex', marginTop: 10, gap: 4 }}>
+      <div style={{ display: 'flex', marginTop: 11, gap: 4 }}>
         <StatPill label="USAGE"   value={link.usage.toFixed(1)} unit="%" risk={link.risk} />
         <div style={{ width: 1, background: T.border }} />
         <StatPill label="LATENCY" value={link.lat.toFixed(0)}   unit="ms" />
@@ -188,12 +234,13 @@ function LinkCard({ link }) {
       </div>
       {(isWarn) && (
         <div style={{
-          marginTop: 9, padding: '5px 9px',
+          marginTop: 10, padding: '6px 10px',
           background: riskDim(link.risk),
-          borderRadius: 5,
-          fontSize: 10, fontWeight: 500,
+          borderRadius: 6,
+          fontSize: 10, fontWeight: 600,
           color: riskColor(link.risk),
-          border: `1px solid ${riskColor(link.risk)}25`,
+          border: `1px solid ${riskColor(link.risk)}30`,
+          letterSpacing: '0.01em',
         }}>
           {isCrit
             ? `⚡ Failure predicted in ~${etaMin(link.risk)} min — act now`
@@ -209,27 +256,28 @@ function AlertCard({ alert }) {
   const bg    = alert.level === 'critical' ? T.redDim : T.amberDim
   return (
     <div style={{
-      background: bg,
-      border: `1px solid ${color}35`,
+      background: `linear-gradient(135deg, ${bg} 0%, ${T.card} 100%)`,
+      border: `1px solid ${color}40`,
       borderLeft: `3px solid ${color}`,
-      borderRadius: 8,
-      padding: '11px 13px',
-      marginBottom: 7,
+      borderRadius: 10,
+      padding: '12px 14px',
+      marginBottom: 8,
+      boxShadow: `0 0 16px ${color}15`,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: '0.07em' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 10, fontWeight: 800, color, letterSpacing: '0.09em' }}>
           {alert.level === 'critical' ? '🔴 CRITICAL' : '⚠ WARNING'}
         </span>
         <span style={{ fontSize: 9, color: T.muted, fontFamily: T.mono }}>{fmtTime(alert.ts)}</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 3 }}>{alert.label}</div>
-      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.5 }}>{alert.msg}</div>
-      <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 4 }}>{alert.label}</div>
+      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.6 }}>{alert.msg}</div>
+      <div style={{ display: 'flex', gap: 16, marginTop: 9 }}>
         <span style={{ fontSize: 10, color: T.muted }}>
-          Risk: <span style={{ color, fontWeight: 600, fontFamily: T.mono }}>{(alert.risk * 100).toFixed(0)}%</span>
+          Risk: <span style={{ color, fontWeight: 700, fontFamily: T.mono }}>{(alert.risk * 100).toFixed(0)}%</span>
         </span>
         <span style={{ fontSize: 10, color: T.muted }}>
-          ETA: <span style={{ color, fontWeight: 600 }}>~{alert.eta} min</span>
+          ETA: <span style={{ color, fontWeight: 700 }}>~{alert.eta} min</span>
         </span>
       </div>
     </div>
@@ -237,56 +285,129 @@ function AlertCard({ alert }) {
 }
 
 function ChatBubble({ msg }) {
-  const isUser   = msg.role === 'user'
-  const isSystem = msg.role === 'system'
+  const isUser    = msg.role === 'user'
+  const isSystem  = msg.role === 'system'
   const isCopilot = msg.role === 'copilot'
   return (
-    <div style={{ marginBottom: 14, display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-end' : 'flex-start' }}>
+    <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-end' : 'flex-start' }}>
       {!isUser && (
-        <div style={{ fontSize: 9, color: T.muted, marginBottom: 4, paddingLeft: 2, letterSpacing: '0.05em' }}>
-          {isSystem ? 'SYSTEM' : 'NOC COPILOT'} · {fmtTime(msg.ts)}
+        <div style={{ fontSize: 9, color: T.muted, marginBottom: 5, paddingLeft: 2, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          {isSystem ? '⚙ System' : '🛰 NOC Copilot'} · {fmtTime(msg.ts)}
         </div>
       )}
       <div style={{
         maxWidth: '90%',
-        padding: '9px 13px',
-        borderRadius: isUser ? '10px 10px 3px 10px' : '10px 10px 10px 3px',
-        background: isUser ? T.blueDim : isSystem ? '#0a1220' : T.card,
-        border: `1px solid ${isUser ? T.blue + '40' : isSystem ? T.blue + '25' : T.border}`,
+        padding: '10px 14px',
+        borderRadius: isUser ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+        background: isUser
+          ? `linear-gradient(135deg, ${T.blueDim}, ${T.blueBg})`
+          : isSystem
+          ? `linear-gradient(135deg, #eef2f8, #e6ecf6)`
+          : `linear-gradient(135deg, ${T.card}, ${T.cardHi})`,
+        border: `1px solid ${isUser ? T.blue + '40' : isSystem ? T.blue + '30' : T.border}`,
         fontSize: 12,
         color: T.text,
-        lineHeight: 1.75,
+        lineHeight: 1.8,
         whiteSpace: 'pre-wrap',
-        fontFamily: isSystem ? T.mono : 'Inter, sans-serif',
+        fontFamily: isSystem ? T.mono : "'Times New Roman', Times, serif",
+        boxShadow: isUser ? `0 2px 8px ${T.blue}18` : '0 1px 4px rgba(0,0,0,0.06)',
       }}>
         {msg.text}
       </div>
-      {/* RAG retrieval trace — visible proof of offline local inference */}
+      {/* RAG retrieval trace */}
       {isCopilot && msg.rag && (
         <div style={{
-          maxWidth: '90%', marginTop: 5,
-          display: 'flex', flexWrap: 'wrap', gap: 4, paddingLeft: 2,
+          maxWidth: '90%', marginTop: 6,
+          display: 'flex', flexWrap: 'wrap', gap: 5, paddingLeft: 2,
         }}>
           <span style={{ fontSize: 9, color: T.muted, alignSelf: 'center' }}>📁 RAG retrieved:</span>
           {msg.rag.docs.map(d => (
             <span key={d} style={{
-              fontSize: 9, padding: '1px 6px', borderRadius: 3,
+              fontSize: 9, padding: '2px 7px', borderRadius: 4,
               background: T.blueDim, color: T.blue,
-              border: `1px solid ${T.blue}25`,
+              border: `1px solid ${T.blue}30`,
             }}>{d}</span>
           ))}
           <span style={{
-            fontSize: 9, padding: '1px 6px', borderRadius: 3,
+            fontSize: 9, padding: '2px 7px', borderRadius: 4,
             background: T.greenDim, color: T.green,
-            border: `1px solid ${T.green}25`,
+            border: `1px solid ${T.green}30`,
           }}>Mistral-7B local · {msg.rag.latency}ms · 0 ext calls</span>
         </div>
       )}
       {isUser && (
-        <div style={{ fontSize: 9, color: T.muted, marginTop: 3, paddingRight: 2, letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: 9, color: T.muted, marginTop: 4, paddingRight: 2, letterSpacing: '0.06em' }}>
           OPERATOR · {fmtTime(msg.ts)}
         </div>
       )}
+    </div>
+  )
+}
+
+/* ─── Orbital Ring Indicator ─────────────────────────────────────────────── */
+function OrbitalDot({ color, pulse, size = 8 }) {
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <div style={{
+        width: size, height: size, borderRadius: '50%',
+        background: color,
+        boxShadow: `0 0 ${size + 2}px ${color}`,
+        animation: pulse ? 'pulse-dot 2s infinite' : 'none',
+      }} />
+    </div>
+  )
+}
+
+/* ─── Stat Tile for header ───────────────────────────────────────────────── */
+function HeaderStat({ label, value, color }) {
+  return (
+    <div style={{ textAlign: 'center', minWidth: 60 }}>
+      <div style={{ fontSize: 8, color: T.muted, letterSpacing: '0.09em', marginBottom: 2, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 800, color, fontFamily: T.mono, letterSpacing: '0.02em' }}>{value}</div>
+    </div>
+  )
+}
+
+/* ─── Info Row for side panels ───────────────────────────────────────────── */
+function InfoRow({ k, v, highlight }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <span style={{ fontSize: 10, color: T.muted }}>{k}</span>
+      <span style={{
+        fontSize: 10,
+        color: highlight ? T.green : T.text,
+        fontFamily: T.mono,
+        padding: highlight ? '1px 6px' : '0',
+        background: highlight ? T.greenDim : 'transparent',
+        borderRadius: highlight ? 3 : 0,
+        border: highlight ? `1px solid ${T.green}30` : 'none',
+      }}>{v}</span>
+    </div>
+  )
+}
+
+/* ─── Panel Header ───────────────────────────────────────────────────────── */
+function PanelHeader({ title, sub, right }) {
+  return (
+    <div style={{
+      padding: '13px 16px',
+      borderBottom: `1px solid ${T.border}`,
+      flexShrink: 0,
+      background: `linear-gradient(135deg, ${T.surface} 0%, ${T.card} 100%)`,
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    }}>
+      <div>
+        <div style={{
+          fontSize: 10, fontWeight: 800, color: T.blue,
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <div style={{ width: 3, height: 12, background: `linear-gradient(180deg, ${T.blue}, ${T.orange})`, borderRadius: 2 }} />
+          {title}
+        </div>
+        {sub && <div style={{ fontSize: 9, color: T.muted, marginTop: 3 }}>{sub}</div>}
+      </div>
+      {right}
     </div>
   )
 }
@@ -307,7 +428,7 @@ export default function App() {
   const [offlineMode,    setOfflineMode]    = useState(false)
   const [offlineSecs,    setOfflineSecs]    = useState(0)
   const [inferenceCount, setInferenceCount] = useState(0)
-  const [extCalls]                          = useState(0)   // always 0 — that is the point
+  const [extCalls]                          = useState(0)
 
   const tickRef    = useRef(0)
   const faultRef   = useRef(false)
@@ -325,7 +446,6 @@ export default function App() {
       setLinks(prev => prev.map(link => {
         if (link.id === FAULT_LINK && (faultRef.current || t >= FAULT_TICK)) {
           if (!faultRef.current) { faultRef.current = true; setFaultActive(true) }
-          const step  = t - (faultRef.current ? tickRef.current - t : FAULT_TICK)
           const s     = Math.max(0, t - FAULT_TICK)
           const usage = clamp(56 + s * 2.6 + (Math.random() - 0.3) * 1.5, 56, 98)
           const lat   = clamp(12 + s * 3.8 + (Math.random() - 0.3) * 2, 12, 115)
@@ -442,71 +562,103 @@ export default function App() {
 
   const quick = ['Network status', 'What should I do', 'Root cause', 'Model info', 'Help']
 
-  /* ── Styles ── */
-  const col = {
-    display: 'flex', flexDirection: 'column',
-    borderRight: `1px solid ${T.border}`,
-    overflow: 'hidden',
-  }
-  const panelHead = {
-    padding: '12px 14px',
-    borderBottom: `1px solid ${T.border}`,
-    flexShrink: 0,
-    background: T.surface,
-  }
-
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, color: T.text }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, color: T.text, fontFamily: "'Times New Roman', Times, serif" }}>
+
+      {/* ── Animated star field background ── */}
+      <div style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+        background: `
+          radial-gradient(ellipse at 20% 50%, ${T.blue}08 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 20%, ${T.orange}06 0%, transparent 50%),
+          radial-gradient(ellipse at 60% 80%, ${T.blue}05 0%, transparent 40%)
+        `,
+      }} />
 
       {/* ── Header ── */}
       <header style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', height: 50, flexShrink: 0,
-        background: T.surface, borderBottom: `1px solid ${T.border}`,
+        padding: '0 20px', height: 58, flexShrink: 0, zIndex: 10, position: 'relative',
+        background: `linear-gradient(135deg, ${T.surface} 0%, #e8eef8 100%)`,
+        borderBottom: `1px solid ${T.border}`,
+        boxShadow: `0 2px 24px ${T.blue}12`,
       }}>
         {/* left: branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* ISRO-style emblem */}
           <div style={{
-            width: 28, height: 28, borderRadius: 7,
-            background: T.blueDim, border: `1px solid ${T.blue}35`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+            width: 38, height: 38, borderRadius: 10,
+            background: `linear-gradient(135deg, ${T.blueDim}, ${T.blueBg})`,
+            border: `1.5px solid ${T.blue}60`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 18,
+            boxShadow: `0 0 16px ${T.blue}30, inset 0 0 12px ${T.blue}10`,
+            animation: 'logo-glow 3s ease-in-out infinite',
           }}>🛰</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.04em' }}>NOC COPILOT</div>
-            <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.08em' }}>PREDICTIVE FAULT ANALYTICS · AIR-GAPPED</div>
+            <div style={{
+              fontSize: 15, fontWeight: 800, letterSpacing: '0.06em',
+              background: `linear-gradient(90deg, ${T.blue}, #60c0f0, ${T.orange})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>NOC COPILOT</div>
+            <div style={{ fontSize: 8, color: T.muted, letterSpacing: '0.12em', marginTop: 1 }}>
+              PREDICTIVE FAULT ANALYTICS · AIR-GAPPED · ISRO
+            </div>
           </div>
+          {/* Orange accent separator */}
+          <div style={{ width: 1, height: 28, background: `linear-gradient(180deg, transparent, ${T.orange}60, transparent)`, marginLeft: 4 }} />
         </div>
 
-        {/* center: status */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+        {/* center: status strip */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           {[
-            ['STATUS',     overall,                  overallClr],
-            ['ALERTS',     String(alerts.length),    alerts.length > 0 ? T.red : T.muted],
-            ['LINKS',      '4/4',                    T.green],
-            ['INFERENCES', String(inferenceCount),   T.blue],
-            ['EXT CALLS',  String(extCalls),         T.green],
-            ['UPTIME',     fmtUptime(),              T.muted],
-          ].map(([k, v, c]) => (
-            <div key={k} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.07em', marginBottom: 1 }}>{k}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: c, fontFamily: T.mono }}>{v}</div>
+            ['STATUS',     overall,               overallClr],
+            ['ALERTS',     String(alerts.length), alerts.length > 0 ? T.red : T.muted],
+            ['LINKS',      '4 / 4',               T.green],
+            ['INFERENCES', String(inferenceCount), T.blue],
+            ['EXT CALLS',  String(extCalls),       T.green],
+            ['UPTIME',     fmtUptime(),            T.muted],
+          ].map(([k, v, c], idx) => (
+            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                textAlign: 'center',
+                padding: '5px 10px',
+                background: T.card,
+                borderRadius: 7,
+                border: `1px solid ${T.border}`,
+                minWidth: 60,
+              }}>
+                <div style={{ fontSize: 8, color: T.muted, letterSpacing: '0.09em', marginBottom: 2 }}>{k}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: c, fontFamily: T.mono }}>{v}</div>
+              </div>
+              {idx < 5 && <div style={{ width: 1, height: 20, background: T.faint }} />}
             </div>
           ))}
         </div>
 
-        {/* right: controls + badge */}
+        {/* right: controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {!faultActive ? (
             <button onClick={injectFault} style={{
-              padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-              background: T.amberDim, color: T.amber, border: `1px solid ${T.amber}40`,
+              padding: '6px 14px', borderRadius: 7, fontSize: 11, fontWeight: 700,
+              background: `linear-gradient(135deg, ${T.amberDim}, ${T.amberBg})`,
+              color: T.amber,
+              border: `1px solid ${T.amber}50`,
               cursor: 'pointer',
-            }}>⚡ Inject Fault</button>
+              transition: 'all 0.2s',
+              boxShadow: `0 0 12px ${T.amber}15`,
+              letterSpacing: '0.02em',
+            }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 20px ${T.amber}35`}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = `0 0 12px ${T.amber}15`}
+            >⚡ Inject Fault</button>
           ) : (
             <button onClick={resetSim} style={{
-              padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+              padding: '6px 14px', borderRadius: 7, fontSize: 11, fontWeight: 700,
               background: T.faint, color: T.muted, border: `1px solid ${T.border}`,
-              cursor: 'pointer',
+              cursor: 'pointer', transition: 'all 0.2s',
             }}>↺ Reset</button>
           )}
           {!offlineMode ? (
@@ -518,10 +670,15 @@ export default function App() {
                 ts: new Date(),
               }])
             }} style={{
-              padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-              background: '#1a0e1f', color: '#c084fc',
-              border: '1px solid #c084fc40', cursor: 'pointer',
-            }}>📡 Go Offline</button>
+              padding: '6px 14px', borderRadius: 7, fontSize: 11, fontWeight: 700,
+              background: 'linear-gradient(135deg, #f3eaff, #e9d8ff)',
+              color: '#6b21a8',
+              border: '1px solid #a855f760',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 16px #c084fc25'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+            >📡 Go Offline</button>
           ) : (
             <button onClick={() => {
               setOfflineMode(false)
@@ -531,24 +688,23 @@ export default function App() {
                 ts: new Date(),
               }])
             }} style={{
-              padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-              background: '#1a0508', color: T.red,
-              border: `1px solid ${T.red}40`, cursor: 'pointer',
-              animation: 'pulse-red 1.5s infinite',
+              padding: '6px 14px', borderRadius: 7, fontSize: 11, fontWeight: 700,
+              background: T.redBg, color: T.red,
+              border: `1px solid ${T.red}45`, cursor: 'pointer',
+              animation: 'pulse-red-btn 1.5s infinite',
             }}>🔴 Online ({offlineSecs}s offline)</button>
           )}
+
+          {/* AIR-GAPPED badge */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '4px 10px', borderRadius: 6,
-            background: T.greenBg, border: `1px solid ${T.green}50`,
-            boxShadow: `0 0 8px ${T.green}20`,
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '5px 12px', borderRadius: 8,
+            background: `linear-gradient(135deg, ${T.greenBg}, #d4f0dc)`,
+            border: `1px solid ${T.green}50`,
+            boxShadow: `0 0 12px ${T.green}20`,
           }}>
-            <div style={{
-              width: 7, height: 7, borderRadius: '50%', background: T.green,
-              boxShadow: `0 0 8px ${T.green}`,
-              animation: 'pulse-green 2s infinite',
-            }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: T.green, letterSpacing: '0.08em' }}>AIR-GAPPED</span>
+            <OrbitalDot color={T.green} pulse size={7} />
+            <span style={{ fontSize: 10, fontWeight: 800, color: T.green, letterSpacing: '0.10em' }}>AIR-GAPPED</span>
           </div>
         </div>
       </header>
@@ -557,21 +713,21 @@ export default function App() {
       {offlineMode && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '7px 20px', flexShrink: 0,
-          background: '#1a0508',
-          borderBottom: `1px solid ${T.red}60`,
+          padding: '8px 20px', flexShrink: 0, zIndex: 9,
+          background: `linear-gradient(90deg, ${T.redBg}, #fce8eb, ${T.redBg})`,
+          borderBottom: `1px solid ${T.red}50`,
           animation: 'banner-pulse 2s infinite',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: T.red, animation: 'pulse-red 1s infinite' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: T.red, letterSpacing: '0.06em' }}>
+            <OrbitalDot color={T.red} pulse size={8} />
+            <span style={{ fontSize: 11, fontWeight: 800, color: T.red, letterSpacing: '0.08em' }}>
               WIFI DISCONNECTED — OFFLINE MODE ACTIVE
             </span>
-            <span style={{ fontSize: 11, color: '#f0454a99' }}>
-              Operating offline for <span style={{ fontFamily: T.mono, fontWeight: 700, color: T.red }}>{offlineSecs}s</span>
+            <span style={{ fontSize: 11, color: `${T.red}99` }}>
+              Operating offline for <span style={{ fontFamily: T.mono, fontWeight: 800, color: T.red }}>{offlineSecs}s</span>
             </span>
           </div>
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div style={{ display: 'flex', gap: 18 }}>
             {[
               ['External API calls', '0', T.green],
               ['Local inferences',   String(inferenceCount), T.blue],
@@ -579,7 +735,7 @@ export default function App() {
               ['RAG',               'ChromaDB on-disk', T.text],
             ].map(([k, v, c]) => (
               <span key={k} style={{ fontSize: 10, color: T.muted }}>
-                {k}: <span style={{ color: c, fontWeight: 600, fontFamily: T.mono }}>{v}</span>
+                {k}: <span style={{ color: c, fontWeight: 700, fontFamily: T.mono }}>{v}</span>
               </span>
             ))}
           </div>
@@ -590,7 +746,8 @@ export default function App() {
       <div style={{
         display: 'flex', flexShrink: 0,
         borderBottom: `1px solid ${T.border}`,
-        background: T.surface,
+        background: `linear-gradient(135deg, ${T.surface}, #eef2fa)`,
+        zIndex: 9,
       }}>
         {[
           {
@@ -611,53 +768,74 @@ export default function App() {
             icon: '🇮🇳',
             title: 'Sovereign AI for Indian infra',
             desc: 'No cloud dependency — air-gapped by design',
-            color: '#f97316',
+            color: T.orange,
             sub: 'Runs on commodity hardware, not GPU clusters',
           },
         ].map((item, i) => (
           <div key={i} style={{
             flex: 1,
-            padding: '8px 16px',
+            padding: '9px 18px',
             borderRight: i < 2 ? `1px solid ${T.border}` : 'none',
-            display: 'flex', alignItems: 'center', gap: 10,
-          }}>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+            display: 'flex', alignItems: 'center', gap: 12,
+            transition: 'background 0.3s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = T.card}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <div style={{
+              width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16,
+              background: `${item.color}12`,
+              border: `1px solid ${item.color}30`,
+            }}>{item.icon}</div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: item.color, letterSpacing: '0.02em' }}>
                 {item.title}
               </div>
-              <div style={{ fontSize: 9, color: T.muted, marginTop: 1 }}>{item.desc}</div>
-              <div style={{ fontSize: 9, color: T.faint, marginTop: 1, fontStyle: 'italic' }}>{item.sub}</div>
+              <div style={{ fontSize: 9, color: T.muted, marginTop: 2 }}>{item.desc}</div>
+              <div style={{ fontSize: 9, color: `${item.color}60`, marginTop: 1, fontStyle: 'italic' }}>{item.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* ── Three-panel body ── */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
 
         {/* LEFT — Network Health */}
-        <div style={{ ...col, width: 288, flexShrink: 0 }}>
-          <div style={panelHead}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: '0.08em' }}>LINK HEALTH</div>
-            <div style={{ fontSize: 9, color: T.faint, marginTop: 2 }}>4 links · updates every 2s</div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 10px' }}>
+        <div style={{
+          width: 292, flexShrink: 0, display: 'flex', flexDirection: 'column',
+          borderRight: `1px solid ${T.border}`, overflow: 'hidden',
+        }}>
+          <PanelHeader
+            title="Link Health"
+            sub="4 links · live telemetry · 2s refresh"
+          />
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 12px' }}>
             {links.map(l => <LinkCard key={l.id} link={l} />)}
 
             {/* Sites legend */}
             <div style={{
-              marginTop: 4, padding: '12px 13px',
-              background: T.card, border: `1px solid ${T.border}`,
-              borderRadius: 10,
+              marginTop: 6, padding: '13px 14px',
+              background: `linear-gradient(135deg, ${T.card}, ${T.cardHi})`,
+              border: `1px solid ${T.border}`,
+              borderRadius: 12,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', marginBottom: 10 }}>SITES</div>
+              <div style={{
+                fontSize: 9, fontWeight: 800, color: T.blue,
+                letterSpacing: '0.12em', marginBottom: 12, textTransform: 'uppercase',
+              }}>Sites</div>
               {SITES.map(s => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: s.id === 'pune' && warnLink ? riskColor(warnLink.risk) : s.color, flexShrink: 0, boxShadow: s.id === 'pune' && critLink ? `0 0 6px ${T.red}` : 'none' }} />
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
+                  <OrbitalDot
+                    color={s.id === 'pune' && warnLink ? riskColor(warnLink.risk) : s.color}
+                    pulse={s.id === 'pune' && !!critLink}
+                    size={8}
+                  />
                   <div>
-                    <div style={{ fontSize: 11, color: T.text }}>{s.label}</div>
-                    <div style={{ fontSize: 9, color: T.muted }}>{s.role}</div>
+                    <div style={{ fontSize: 11, color: T.text, fontWeight: 600 }}>{s.label}</div>
+                    <div style={{ fontSize: 9, color: T.muted, marginTop: 1 }}>{s.role}</div>
                   </div>
                 </div>
               ))}
@@ -665,40 +843,62 @@ export default function App() {
 
             {/* Model card */}
             <div style={{
-              marginTop: 8, padding: '12px 13px',
-              background: T.card, border: `1px solid ${T.border}`,
-              borderRadius: 10,
+              marginTop: 9, padding: '13px 14px',
+              background: `linear-gradient(135deg, ${T.card}, ${T.cardHi})`,
+              border: `1px solid ${T.border}`,
+              borderRadius: 12,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', marginBottom: 10 }}>PREDICTION ENGINE</div>
-              {[
-                ['Model',     'LSTM (PyTorch)'],
-                ['Window',    '30 ticks'],
-                ['Precision', '91.4%'],
-                ['Lead time', '10–20 min'],
-                ['Status',    'Running'],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 10, color: T.muted }}>{k}</span>
-                  <span style={{ fontSize: 10, color: k === 'Status' ? T.green : T.text, fontFamily: T.mono }}>{v}</span>
-                </div>
-              ))}
+              <div style={{
+                fontSize: 9, fontWeight: 800, color: T.blue,
+                letterSpacing: '0.12em', marginBottom: 12, textTransform: 'uppercase',
+              }}>Prediction Engine</div>
+              <InfoRow k="Model"     v="LSTM (PyTorch)" />
+              <InfoRow k="Window"    v="30 ticks" />
+              <InfoRow k="Precision" v="91.4%" />
+              <InfoRow k="Lead time" v="10–20 min" />
+              <InfoRow k="Status"    v="Running" highlight />
             </div>
           </div>
         </div>
 
         {/* CENTER — Alerts */}
-        <div style={{ ...col, width: 280, flexShrink: 0 }}>
-          <div style={panelHead}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: '0.08em' }}>PREDICTIVE ALERTS</div>
-            <div style={{ fontSize: 9, color: T.faint, marginTop: 2 }}>LSTM engine · pre-failure detection</div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 10px' }}>
+        <div style={{
+          width: 284, flexShrink: 0, display: 'flex', flexDirection: 'column',
+          borderRight: `1px solid ${T.border}`, overflow: 'hidden',
+        }}>
+          <PanelHeader
+            title="Predictive Alerts"
+            sub="LSTM engine · pre-failure detection"
+            right={
+              alerts.length > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '3px 9px', borderRadius: 6,
+                  background: T.redDim, border: `1px solid ${T.red}40`,
+                }}>
+                  <OrbitalDot color={T.red} pulse size={6} />
+                  <span style={{ fontSize: 9, fontWeight: 800, color: T.red, letterSpacing: '0.06em' }}>
+                    {alerts.length} ACTIVE
+                  </span>
+                </div>
+              )
+            }
+          />
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 12px' }}>
             {alerts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '50px 20px', color: T.muted }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>✓</div>
-                <div style={{ fontSize: 12, fontWeight: 500 }}>No active alerts</div>
-                <div style={{ fontSize: 10, marginTop: 5, color: T.faint }}>All links nominal</div>
-                <div style={{ fontSize: 9, marginTop: 20, color: T.faint }}>Press "Inject Fault" to demo<br/>the predictive detection</div>
+              <div style={{ textAlign: 'center', padding: '44px 20px', color: T.muted }}>
+                <div style={{
+                  fontSize: 36, marginBottom: 12,
+                  filter: `drop-shadow(0 0 12px ${T.green}60)`,
+                }}>✓</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>All Clear</div>
+                <div style={{ fontSize: 10, marginTop: 6, color: T.muted }}>All links nominal</div>
+                <div style={{
+                  fontSize: 9, marginTop: 20, color: T.faint,
+                  padding: '8px 12px', borderRadius: 8,
+                  border: `1px dashed ${T.border}`,
+                  lineHeight: 1.7,
+                }}>Press "Inject Fault" to demo<br/>the predictive detection</div>
               </div>
             ) : (
               alerts.map(a => <AlertCard key={a.id} alert={a} />)
@@ -706,40 +906,39 @@ export default function App() {
 
             {/* Telemetry stack info */}
             <div style={{
-              marginTop: 8, padding: '12px 13px',
-              background: T.card, border: `1px solid ${T.border}`,
-              borderRadius: 10,
+              marginTop: 8, padding: '13px 14px',
+              background: `linear-gradient(135deg, ${T.card}, ${T.cardHi})`,
+              border: `1px solid ${T.border}`, borderRadius: 12,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', marginBottom: 10 }}>TELEMETRY STACK</div>
-              {[
-                ['Collector',  'Telegraf'],
-                ['Store',      'InfluxDB'],
-                ['Graphs',     'Grafana'],
-                ['Interval',   '10s'],
-                ['Retention',  '30 days'],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 10, color: T.muted }}>{k}</span>
-                  <span style={{ fontSize: 10, color: T.text, fontFamily: T.mono }}>{v}</span>
-                </div>
-              ))}
+              <div style={{
+                fontSize: 9, fontWeight: 800, color: T.blue,
+                letterSpacing: '0.12em', marginBottom: 12, textTransform: 'uppercase',
+              }}>Telemetry Stack</div>
+              <InfoRow k="Collector" v="Telegraf" />
+              <InfoRow k="Store"     v="InfluxDB" />
+              <InfoRow k="Graphs"    v="Grafana" />
+              <InfoRow k="Interval"  v="10s" />
+              <InfoRow k="Retention" v="30 days" />
             </div>
 
             {/* Fault scenarios */}
             <div style={{
-              marginTop: 8, padding: '12px 13px',
-              background: T.card, border: `1px solid ${T.border}`,
-              borderRadius: 10,
+              marginTop: 9, padding: '13px 14px',
+              background: `linear-gradient(135deg, ${T.card}, ${T.cardHi})`,
+              border: `1px solid ${T.border}`, borderRadius: 12,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', marginBottom: 10 }}>VALIDATED SCENARIOS</div>
+              <div style={{
+                fontSize: 9, fontWeight: 800, color: T.blue,
+                letterSpacing: '0.12em', marginBottom: 12, textTransform: 'uppercase',
+              }}>Validated Scenarios</div>
               {[
                 ['Congestion buildup', T.amber],
                 ['BGP route flap',     T.red],
                 ['Tunnel degradation', T.amber],
                 ['Policy drift',       T.blue],
               ].map(([s, c]) => (
-                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: c, flexShrink: 0 }} />
+                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: c, flexShrink: 0, boxShadow: `0 0 4px ${c}` }} />
                   <span style={{ fontSize: 10, color: T.muted }}>{s}</span>
                 </div>
               ))}
@@ -750,35 +949,38 @@ export default function App() {
         {/* RIGHT — AI Copilot */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* header */}
-          <div style={{ ...panelHead, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: '0.08em' }}>AI COPILOT</div>
-              <div style={{ fontSize: 9, color: T.faint, marginTop: 2 }}>Mistral-7B · ChromaDB RAG · offline</div>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[['LLM', 'Mistral-7B'], ['RAG', 'ChromaDB'], ['Docs', '4 indexed']].map(([k, v]) => (
-                <div key={k} style={{
-                  padding: '3px 8px', background: T.blueDim,
-                  borderRadius: 5, border: `1px solid ${T.blue}25`,
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: 8, color: T.muted }}>{k}</div>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: T.blue }}>{v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PanelHeader
+            title="AI Copilot"
+            sub="Mistral-7B · ChromaDB RAG · offline inference"
+            right={
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[['LLM', 'Mistral-7B'], ['RAG', 'ChromaDB'], ['Docs', '4 indexed']].map(([k, v]) => (
+                  <div key={k} style={{
+                    padding: '4px 9px',
+                    background: T.blueDim,
+                    borderRadius: 6,
+                    border: `1px solid ${T.blue}30`,
+                    textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: 8, color: T.muted }}>{k}</div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: T.blue }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            }
+          />
 
           {/* messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
             {messages.map((m, i) => <ChatBubble key={i} msg={m} />)}
             {typing && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.05em' }}>NOC COPILOT</div>
-                <div style={{ display: 'flex', gap: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.06em' }}>🛰 NOC COPILOT</div>
+                <div style={{ display: 'flex', gap: 4 }}>
                   {[0, 1, 2].map(i => (
                     <div key={i} style={{
-                      width: 5, height: 5, borderRadius: '50%', background: T.blue,
+                      width: 6, height: 6, borderRadius: '50%',
+                      background: T.blue,
                       animation: `blink 1.2s ${i * 0.2}s infinite`,
                     }} />
                   ))}
@@ -790,18 +992,28 @@ export default function App() {
 
           {/* quick actions */}
           <div style={{
-            padding: '8px 14px', borderTop: `1px solid ${T.border}`,
-            display: 'flex', gap: 5, flexWrap: 'wrap', background: T.surface,
+            padding: '9px 16px', borderTop: `1px solid ${T.border}`,
+            display: 'flex', gap: 6, flexWrap: 'wrap',
+            background: `linear-gradient(135deg, ${T.surface}, ${T.card})`,
           }}>
             {quick.map(q => (
               <button key={q} onClick={() => sendMessage(q)} style={{
-                padding: '3px 9px', borderRadius: 4, fontSize: 10,
+                padding: '4px 10px', borderRadius: 5, fontSize: 10, fontWeight: 500,
                 background: 'transparent', color: T.muted,
                 border: `1px solid ${T.border}`, cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all 0.18s',
+                letterSpacing: '0.01em',
               }}
-              onMouseEnter={e => { e.target.style.color = T.text; e.target.style.borderColor = T.borderHi }}
-              onMouseLeave={e => { e.target.style.color = T.muted; e.target.style.borderColor = T.border }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = T.blue
+                e.currentTarget.style.borderColor = T.blue + '60'
+                e.currentTarget.style.background = T.blueDim
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = T.muted
+                e.currentTarget.style.borderColor = T.border
+                e.currentTarget.style.background = 'transparent'
+              }}
               >
                 {q}
               </button>
@@ -810,43 +1022,63 @@ export default function App() {
 
           {/* input */}
           <div style={{
-            padding: '10px 14px', borderTop: `1px solid ${T.border}`,
-            display: 'flex', gap: 8, alignItems: 'flex-end',
-            background: T.surface,
+            padding: '11px 16px', borderTop: `1px solid ${T.border}`,
+            display: 'flex', gap: 9, alignItems: 'flex-end',
+            background: `linear-gradient(135deg, ${T.surface}, #060d1c)`,
           }}>
             <textarea
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
-              placeholder="Ask the copilot... (e.g. 'What should I do about the Pune alert?')"
+              placeholder="Ask the copilot… e.g. 'What should I do about the Pune alert?'"
               rows={2}
               style={{
-                flex: 1, background: T.card,
+                flex: 1,
+                background: T.card,
                 border: `1px solid ${T.border}`,
-                borderRadius: 8, padding: '9px 12px',
+                borderRadius: 10, padding: '9px 13px',
                 color: T.text, fontSize: 12, resize: 'none',
                 outline: 'none', fontFamily: 'Inter, sans-serif',
-                lineHeight: 1.5, transition: 'border-color 0.2s',
+                lineHeight: 1.6, transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={e => { e.target.style.borderColor = T.borderHi }}
-              onBlur={e  => { e.target.style.borderColor = T.border  }}
+              onFocus={e => {
+                e.target.style.borderColor = T.blue + '80'
+                e.target.style.boxShadow = `0 0 0 2px ${T.blue}15`
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = T.border
+                e.target.style.boxShadow = 'none'
+              }}
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || typing}
               style={{
-                padding: '9px 16px', height: 56,
-                background: input.trim() && !typing ? T.blue : T.faint,
-                border: 'none', borderRadius: 8,
+                padding: '9px 18px', height: 58,
+                background: input.trim() && !typing
+                  ? `linear-gradient(135deg, ${T.blue}, #0aa5ff)`
+                  : T.faint,
+                border: 'none', borderRadius: 10,
                 color: input.trim() && !typing ? '#fff' : T.muted,
-                fontSize: 12, fontWeight: 600, cursor: input.trim() && !typing ? 'pointer' : 'default',
+                fontSize: 12, fontWeight: 700,
+                cursor: input.trim() && !typing ? 'pointer' : 'default',
                 flexShrink: 0, transition: 'all 0.2s',
+                boxShadow: input.trim() && !typing ? `0 0 16px ${T.blue}40` : 'none',
+                letterSpacing: '0.02em',
               }}
-            >Send</button>
+            >Send ↗</button>
           </div>
         </div>
       </div>
+
+      {/* ── Bottom ISRO accent bar ── */}
+      <div style={{
+        height: 3, flexShrink: 0,
+        background: `linear-gradient(90deg, ${T.blue}, ${T.orange}, ${T.green}, ${T.orange}, ${T.blue})`,
+        backgroundSize: '400% 100%',
+        animation: 'gradient-slide 8s linear infinite',
+      }} />
 
       {/* animations */}
       <style>{`
@@ -854,17 +1086,31 @@ export default function App() {
           0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
           40%            { opacity: 1;   transform: scale(1); }
         }
-        @keyframes pulse-green {
-          0%, 100% { box-shadow: 0 0 4px #16c974; opacity: 1; }
-          50%       { box-shadow: 0 0 12px #16c974; opacity: 0.8; }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.6; transform: scale(1.4); }
         }
-        @keyframes pulse-red {
-          0%, 100% { box-shadow: 0 0 4px #f0454a; opacity: 1; }
-          50%       { box-shadow: 0 0 12px #f0454a; opacity: 0.7; }
+        @keyframes logo-glow {
+          0%, 100% { box-shadow: 0 0 16px #0a235130, inset 0 0 12px #0a235110; }
+          50%       { box-shadow: 0 0 28px #0a235150, inset 0 0 16px #0a235120; }
+        }
+        @keyframes pulse-red-btn {
+          0%, 100% { box-shadow: 0 0 6px #f0454a30; }
+          50%       { box-shadow: 0 0 16px #f0454a60; }
         }
         @keyframes banner-pulse {
-          0%, 100% { background: #1a0508; }
-          50%       { background: #220608; }
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.88; }
+        }
+        @keyframes gradient-slide {
+          0%   { background-position: 0% 0%; }
+          100% { background-position: 400% 0%; }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #e8edf8; }
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #0a235150, #F4721650);
+          border-radius: 4px;
         }
       `}</style>
     </div>
