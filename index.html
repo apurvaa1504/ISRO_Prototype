@@ -38,6 +38,52 @@
       textarea::placeholder { color: #94A3B8; }
       /* Button reset */
       button { font-family: 'Inter', sans-serif; }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .responsive-header {
+          flex-direction: column !important;
+          height: auto !important;
+          padding: 16px !important;
+          gap: 16px !important;
+        }
+        .header-center-strip {
+          flex-wrap: wrap !important;
+          justify-content: center !important;
+        }
+        .header-controls {
+          flex-wrap: wrap !important;
+          justify-content: center !important;
+        }
+        .diff-strip {
+          flex-direction: column !important;
+          padding: 16px !important;
+          gap: 16px !important;
+        }
+        .diff-item {
+          border-right: none !important;
+          border-bottom: 1px solid #E2E8F0 !important;
+          padding-bottom: 12px !important;
+        }
+        .diff-item:last-child {
+          border-bottom: none !important;
+          padding-bottom: 0 !important;
+        }
+        .panels-container {
+          flex-direction: column !important;
+          overflow-y: auto !important;
+        }
+        .panel-col {
+          width: 100% !important;
+          border-right: none !important;
+          border-bottom: 4px solid #E2E8F0 !important;
+          flex: none !important;
+          height: auto !important;
+        }
+        .panel-copilot {
+          min-height: 500px !important;
+        }
+      }
     </style>
   </head>
   <body>

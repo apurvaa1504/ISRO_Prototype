@@ -944,7 +944,7 @@ export default function App() {
   const formatCountdown = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
   /* computed */
@@ -983,9 +983,9 @@ export default function App() {
           <div style={{ fontSize: 11, color: '#F59E0B', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
             Early Warning — Mumbai–Pune
           </div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#F59E0B', fontFamily: T.mono, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <div style={{ fontSize: 32, fontWeight: 700, color: '#F59E0B', fontFamily: T.mono, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
             <Clock size={20} />
-            T − {formatCountdown(countdown)}
+            <span>T − {formatCountdown(countdown)}</span>
           </div>
         </div>
       );
@@ -1001,10 +1001,11 @@ export default function App() {
           </div>
           <div style={{
             fontSize: 64, fontWeight: 700, color: '#EF4444', fontFamily: T.mono,
-            textShadow: '0 0 10px rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+            textShadow: '0 0 10px rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            whiteSpace: 'nowrap'
           }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: '#EF4444' }}>T −</span>
-            {formatCountdown(countdown)}
+            <span>{formatCountdown(countdown)}</span>
           </div>
           <div style={{ fontSize: 13, color: '#64748B', marginTop: 8, fontWeight: 500 }}>
             Mumbai–Pune Link Failure Predicted
@@ -1090,7 +1091,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, color: T.text, fontFamily: "Inter, sans-serif" }}>
+    <div className="app-main-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, color: T.text, fontFamily: "Inter, sans-serif" }}>
 
       {/* Star field background */}
       <div style={{
@@ -1103,7 +1104,7 @@ export default function App() {
       }} />
 
       {/* Header Bar */}
-      <header style={{
+      <header className="responsive-header" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 24px', height: 64, flexShrink: 0, zIndex: 10, position: 'relative',
         background: '#EFF6FF',
@@ -1142,7 +1143,7 @@ export default function App() {
         </div>
 
         {/* center: status strip */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="header-center-strip" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{
             display: 'flex',
             background: '#DBEAFE',
@@ -1174,7 +1175,7 @@ export default function App() {
         </div>
 
         {/* right: controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="header-controls" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {!faultActive ? (
             <button onClick={injectFault} style={{
               padding: '6px 14px', borderRadius: 6, fontSize: 11, fontWeight: 600,
@@ -1287,7 +1288,7 @@ export default function App() {
       </header>
 
       {/* Differentiator Strip */}
-      <div style={{
+      <div className="diff-strip" style={{
         display: 'flex',
         flexShrink: 0,
         borderBottom: `1px solid ${T.border}`,
@@ -1321,7 +1322,7 @@ export default function App() {
         ].map((item, i) => {
           const IconComponent = item.icon;
           return (
-            <div key={i} style={{
+            <div key={i} className="diff-item" style={{
               flex: 1,
               padding: '6px 12px',
               borderRight: i < 2 ? `1px solid ${T.border}` : 'none',
@@ -1393,10 +1394,10 @@ export default function App() {
       )}
 
       {/* Three-panel body */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+      <div className="panels-container" style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
 
         {/* LEFT — Network Health */}
-        <div style={{
+        <div className="panel-col" style={{
           width: 292, flexShrink: 0, display: 'flex', flexDirection: 'column',
           borderRight: `1px solid ${T.border}`, overflow: 'hidden',
           background: '#F1F5F9',
@@ -1466,7 +1467,7 @@ export default function App() {
         </div>
 
         {/* CENTER — Alerts */}
-        <div style={{
+        <div className="panel-col" style={{
           width: 284, flexShrink: 0, display: 'flex', flexDirection: 'column',
           borderRight: `1px solid ${T.border}`, overflow: 'hidden',
           background: '#F8FAFC',
@@ -1551,7 +1552,7 @@ export default function App() {
         </div>
 
         {/* RIGHT — AI Copilot */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F8FAFC' }}>
+        <div className="panel-col panel-copilot" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F8FAFC' }}>
           {/* Panel Header */}
           <PanelHeader
             title="AI Copilot"
